@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .array_container {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .bars {
+            background-color: #44a5ea;
+            width: 20px;
+            margin: 0 1px;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ecf3f9;
+            color: #d98383;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:disabled {
+            background-color: #e96969;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="array_container"></div>
+        <div class="controls">
+            <input type="range" id="dynamicArraySizeInput" min="5" max="50" value="20">
+            <span id="slider_value">Array Size: 20</span>
+            <button id="merge">Merge Sort</button>
+        </div>
+    </div>
+    <script>
+        const arrayContainer = document.querySelector(".array_container");
+        const slider = document.querySelector("#dynamicArraySizeInput");
+        const sliderText = document.querySelector("#slider_value");
+        const btnMerge = document.querySelector("#merge");
+
+        let baar = [];
+
+        function getRandomHeight() {
+            return Math.floor(Math.random() * 600) + 100;
+        }
+
+        function createBars(size) {
+            arrayContainer.innerHTML = '';
+            baar = [];
+            for (let i = 0; i < size; i++) {
+                const bar = document.createElement('div');
+                bar.classList.add("bars");
+                bar.style.height = getRandomHeight() + 'px';
+                arrayContainer.appendChild(bar);
+                baar.push(bar);
+            }
+        }
+
+        async function mergeSortVisualization() {
+            disableButtons();
+            await mergeSortHelper(0, baar.length - 1);
+            enableButtons();
+        }
+
+        async function mergeSortHelper(start, end) {
+            if (start >= end) return;
+
+            const mid = Math.floor((start + end) / 2);
+
+            await mergeSortHelper(start, mid);
+            await mergeSortHelper(mid + 1, end);
+
+            await merge(start, mid, end);
+        }
+
+        async function merge(start, mid, end) {
+            const leftArray = baar.slice(start, mid + 1);
+            const rightArray = baar.slice(mid + 1, end + 1);
+            const mergedArray = [];
+
+            let leftIndex = 0, rightIndex = 0, mergeIndex = start;
+
+            while (leftIndex < leftArray.length && rightIndex < rightArray.length) {
+                if (parseInt(leftArray[leftIndex].style.height) <= parseInt(rightArray[rightIndex].style.height)) {
+                    mergedArray.push(leftArray[leftIndex]);
+                    leftIndex++;
+                } else {
+                    mergedArray.push(rightArray[rightIndex]);
+                    rightIndex++;
+                }
+            }
+
+            while (leftIndex < leftArray.length) {
+                mergedArray.push(leftArray[leftIndex]);
+                leftIndex++;
+            }
+
+            while (rightIndex < rightArray.length) {
+                mergedArray.push(rightArray[rightIndex]);
+                rightIndex++;
+            }
+
+            for (let i = 0; i < mergedArray.length; i++) {
+                baar[mergeIndex++] = mergedArray[i];
+                await swapBars(baar[start + i], mergedArray[i]);
+            }
+        }
+
+        async function swapBars(bar1, bar2) {
+            const originalColor = bar1.style.backgroundColor;
+            const tempHeight = bar1.style.height;
+
+            bar1.style.height = bar2.style.height;
+            bar2.style.height = tempHeight;
+
+            bar2.style.backgroundColor = "#c1121f";
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            bar1.style.backgroundColor = originalColor;
+            bar2.style.backgroundColor = originalColor;
+        }
+
+        function disableButtons() {
+            btnMerge.disabled = true;
+            slider.disabled = true;
+        }
+
+        function enableButtons() {
+            btnMerge.disabled = false;
+            slider.disabled = false;
+        }
+
+        createBars(slider.value);
+
+        slider.addEventListener("input", () => {
+            const newSize = slider.value;
+            sliderText.textContent = `Array Size: ${newSize}`;
+            createBars(newSize);
+        });
+
+        btnMerge.addEventListener('click', () => {
+            mergeSortVisualization();
+        });
+    </script>
+</body>
+</html>
